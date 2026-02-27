@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Simple MCQ App</title>
+<style>
+body { font-family: Arial; padding:20px; }
+.option { padding:10px; margin:5px 0; border:1px solid #333; cursor:pointer; }
+.correct { background-color:lightgreen; }
+.wrong { background-color:#ff7f7f; }
+.hidden { display:none; }
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+<h2>Select Subject</h2>
+
+<select id="subject">
+<option>History</option>
+<option>Geography</option>
+<option>Polity</option>
+<option>Physics</option>
+<option>Chemistry</option>
+<option>Biology</option>
+<option>Bihar Special</option>
+<option>Current Affairs</option>
+</select>
+
+<br><br>
+
+<input type="text" id="topic" placeholder="Enter Topic">
+
+<br><br>
+
+<button onclick="start()">Start</button>
+</div>
+
+<div id="quizScreen" class="hidden">
+<h3 id="question"></h3>
+<div id="options"></div>
+<p id="explanation"></p>
+<button onclick="next()">Next</button>
+</div>
+
+<script>
+let correctIndex;
+
+function start(){
+document.getElementById("startScreen").classList.add("hidden");
+document.getElementById("quizScreen").classList.remove("hidden");
+generate();
+}
+
+function generate(){
+let subject = document.getElementById("subject").value;
+let topic = document.getElementById("topic").value;
+
+let q = subject + " - " + topic + " ka ek mahatvapurn prashn kya hai?";
+
+let options = [
+topic + " theory",
+topic + " law",
+topic + " concept",
+topic + " fact"
+];
+
+correctIndex = Math.floor(Math.random() * 4);
+
+document.getElementById("question").innerText = q;
+
+let html="";
+options.forEach((opt,i)=>{
+html+=`<div class="option" onclick="check(${i})">${opt}</div>`;
+});
+document.getElementById("options").innerHTML=html;
+document.getElementById("explanation").innerText="";
+}
+
+function check(i){
+let opts=document.getElementsByClassName("option");
+for(let j=0;j<opts.length;j++){
+opts[j].onclick=null;
+}
+
+if(i===correctIndex){
+opts[i].classList.add("correct");
+document.getElementById("explanation").innerText=
+"Explanation: Yeh is topic ka main point hai.";
+}else{
+opts[i].classList.add("wrong");
+opts[correctIndex].classList.add("correct");
+document.getElementById("explanation").innerText=
+"Sahi answer green me dikh raha hai.";
+}
+}
+
+function next(){
+generate();
+}
+</script>
+
+</body>
+</html>
