@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Simple MCQ App</title>
+<title>AI MCQ App</title>
 <style>
 body { font-family: Arial; padding:20px; }
 .option { padding:10px; margin:5px 0; border:1px solid #333; cursor:pointer; }
@@ -37,42 +37,67 @@ body { font-family: Arial; padding:20px; }
 </div>
 
 <div id="quizScreen" class="hidden">
-<h3 id="question"></h3>
+<h3 id="question">Loading...</h3>
 <div id="options"></div>
 <p id="explanation"></p>
 <button onclick="next()">Next</button>
 </div>
 
 <script>
+
 let correctIndex;
 
-function start(){
+async function start(){
 document.getElementById("startScreen").classList.add("hidden");
 document.getElementById("quizScreen").classList.remove("hidden");
 generate();
 }
 
-function generate(){
+async function generate(){
+
 let subject = document.getElementById("subject").value;
 let topic = document.getElementById("topic").value;
 
-let q = subject + " - " + topic + " ka ek mahatvapurn prashn kya hai?";
+document.getElementById("question").innerText="Generating...";
 
-let options = [
-topic + " theory",
-topic + " law",
-topic + " concept",
-topic + " fact"
-];
+const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+method: "POST",
+headers: {
+"Authorization": "Bearer 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",
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+"model": "mistralai/mistral-7b-instruct",
+"messages": [
+{
+"role": "user",
+"content": `Generate 1 MCQ from ${subject} about ${topic}. 
+Give question, 4 options, correct answer number and 2 line explanation in simple JSON format like:
+{
+"question":"",
+"options":["","","",""],
+"answer":0,
+"explanation":""
+}`
+}
+]
+})
+});
 
-correctIndex = Math.floor(Math.random() * 4);
+const data = await response.json();
+const text = data.choices[0].message.content;
 
-document.getElementById("question").innerText = q;
+let mcq = JSON.parse(text);
+
+document.getElementById("question").innerText = mcq.question;
+
+correctIndex = mcq.answer;
 
 let html="";
-options.forEach((opt,i)=>{
+mcq.options.forEach((opt,i)=>{
 html+=`<div class="option" onclick="check(${i})">${opt}</div>`;
 });
+
 document.getElementById("options").innerHTML=html;
 document.getElementById("explanation").innerText="";
 }
@@ -85,13 +110,11 @@ opts[j].onclick=null;
 
 if(i===correctIndex){
 opts[i].classList.add("correct");
-document.getElementById("explanation").innerText=
-"Explanation: Yeh is topic ka main point hai.";
+document.getElementById("explanation").innerText=mcq.explanation;
 }else{
 opts[i].classList.add("wrong");
 opts[correctIndex].classList.add("correct");
-document.getElementById("explanation").innerText=
-"Sahi answer green me dikh raha hai.";
+document.getElementById("explanation").innerText=mcq.explanation;
 }
 }
 
